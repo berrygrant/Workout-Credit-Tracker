@@ -15,11 +15,12 @@ create index if not exists ledger_entries_event_date_idx
 
 alter table public.ledger_entries enable row level security;
 
+drop policy if exists "ledger_entries_select_public" on public.ledger_entries;
 drop policy if exists "ledger_entries_select_authenticated" on public.ledger_entries;
-create policy "ledger_entries_select_authenticated"
+create policy "ledger_entries_select_public"
   on public.ledger_entries
   for select
-  to authenticated
+  to anon, authenticated
   using (true);
 
 drop policy if exists "ledger_entries_insert_authenticated" on public.ledger_entries;

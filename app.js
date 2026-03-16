@@ -33,8 +33,9 @@ const clearButton = document.querySelector("#clear-button");
 const authModeCopy = document.querySelector("#auth-mode-copy");
 const authStateCopy = document.querySelector("#auth-state-copy");
 const authForm = document.querySelector("#auth-form");
-const authEmailInput = document.querySelector("#auth-email");
+const authEmailInput = document.querySelector("#auth-email") || document.querySelector("#auth-identity");
 const authPasswordInput = document.querySelector("#auth-password");
+const authIdentityLabel = authEmailInput?.closest("label") || null;
 const signedInPanel = document.querySelector("#signed-in-panel");
 const signedInIdentity = document.querySelector("#signed-in-identity");
 const signOutButton = document.querySelector("#sign-out-button");
@@ -58,6 +59,8 @@ let state = {
 };
 
 void init();
+
+normalizeLegacyAuthUi();
 
 async function init() {
   const today = new Date().toISOString().split("T")[0];
@@ -87,19 +90,16 @@ async function init() {
     supabaseClient.auth.onAuthStateChange(async (_event, sessionData) => {
       state.user = sessionData?.user || null;
       updateAccessUi();
+      await loadRemoteEntries();
 
       if (state.user) {
-        await loadRemoteEntries();
         setFormMessage("Secure sync active.");
       } else {
-        state.entries = [];
-        render();
+        setFormMessage("Viewing public credits. Sign in to edit.");
       }
     });
 
-    if (state.user) {
-      await loadRemoteEntries();
-    }
+    await loadRemoteEntries();
   }
 
   updateAccessUi();
@@ -170,14 +170,32 @@ function mapRemoteEntry(row) {
   };
 }
 
+function normalizeLegacyAuthUi() {
+  if (!authEmailInput || !authIdentityLabel) {
+    return;
+  }
+
+  const labelTextNode = Array.from(authIdentityLabel.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
+  if (labelTextNode) {
+    labelTextNode.textContent = "Email\n              ";
+  }
+
+  authEmailInput.id = "auth-email";
+  authEmailInput.name = "email";
+  authEmailInput.type = "email";
+  authEmailInput.inputMode = "email";
+  authEmailInput.autocomplete = "email";
+  authEmailInput.placeholder = "name@example.com";
+}
+
 function updateAccessUi() {
   const isSignedIn = Boolean(state.user);
 
   if (state.mode === "supabase") {
-    authModeCopy.textContent = isSignedIn ? "Secure sync" : "Supabase";
+    authModeCopy.textContent = isSignedIn ? "Secure sync" : "Public view";
     authStateCopy.textContent = isSignedIn
       ? "Ledger is stored in Supabase."
-      : "Sign in with email + password.";
+      : "Sign in with email + password to edit credits.";
     authForm.hidden = isSignedIn;
     signedInPanel.hidden = !isSignedIn;
     signedInIdentity.textContent = state.user?.email || "";
@@ -250,17 +268,10 @@ async function handleSignOut() {
     return;
   }
 
-  state.entries = [];
-  setFormMessage("Signed out.");
-  render();
+  setFormMessage("Viewing public credits. Sign in to edit.");
 }
 
 async function loadRemoteEntries() {
-  if (!state.user) {
-    state.entries = [];
-    render();
-    return;
-  }
 
   const { data, error } = await supabaseClient
     .from("ledger_entries")
@@ -447,8 +458,7 @@ function render() {
   progressCopy.textContent = `${progressPercent}% used`;
   statusPill.textContent = describeStatus(totals.remainingCredits);
 
-  emptyState.textContent =
-    state.mode === "supabase" && !state.user ? "Sign in to view entries." : "No entries yet.";
+  emptyState.textContent = "No entries yet.";
 
   updateAccessUi();
   renderCreditStrip(totals.remainingCredits);

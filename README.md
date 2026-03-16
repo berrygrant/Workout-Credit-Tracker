@@ -13,7 +13,7 @@ Simple static app for tracking:
 - each session usually consumes `1` credit
 - without Supabase, data is stored in browser `localStorage`
 
-That means the app works immediately on GitHub Pages, but the browser-only mode is just a demo/local mode. For real protection against credit tampering, use the Supabase setup below so the ledger lives in a database and changes require login.
+That means the app works immediately on GitHub Pages, but the browser-only mode is just a demo/local mode. For real protection against credit tampering, use the Supabase setup below so the ledger lives in a database. In secure mode, signed-out visitors can view credits and signed-in users can edit them.
 
 ## Files
 
@@ -48,7 +48,7 @@ Important:
 
 - the anon key is safe in the frontend
 - never put the service role key in `config.js`
-- secure mode requires login before credits can be changed
+- secure mode allows public read-only viewing and requires login for credit changes
 - the sign-in form uses email + password
 - the database trigger blocks changes that would make the historical balance go negative
 
