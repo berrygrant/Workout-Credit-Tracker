@@ -59,14 +59,3 @@ Important:
 3. Set the source to deploy from your main branch.
 4. Use the repository root as the published folder.
 
-GitHub Pages will host the app as a normal static site.
-
-## When to choose Streamlit instead
-
-Choose Streamlit only if you want to keep building toward a Python-based app. For truly shared trainer/client tracking across multiple devices, the next step would be adding a small backend or shared store such as:
-
-- Google Sheets
-- Supabase
-- Airtable
-
-Without that, Streamlit would still need an extra persistence layer for reliable shared updates.
