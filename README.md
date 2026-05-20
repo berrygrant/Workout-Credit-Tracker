@@ -51,6 +51,7 @@ Important:
 - secure mode allows public read-only viewing and requires login for credit changes
 - the sign-in form uses email + password
 - the database trigger blocks changes that would make the historical balance go negative
+- `touch_app_keepalive()` updates a single heartbeat row for scheduled keep-alive checks; it does not change ledger data
 
 ## Deploy to GitHub Pages
 
@@ -58,4 +59,3 @@ Important:
 2. In GitHub, open `Settings -> Pages`.
 3. Set the source to deploy from your main branch.
 4. Use the repository root as the published folder.
-

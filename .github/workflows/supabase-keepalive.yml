@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Ping Supabase REST API
+      - name: Touch Supabase keep-alive row
         env:
           SUPABASE_URL: "https://nqdjafklbgzwlkwrpjnt.supabase.co"
           SUPABASE_ANON_KEY: "sb_publishable_R9C-cCjGLUJX90MJFyR3Cw_zCY4JqtM"
@@ -22,7 +22,10 @@ jobs:
           set -euo pipefail
 
           curl --fail --silent --show-error --retry 3 --retry-delay 5 \
-            "${SUPABASE_URL}/rest/v1/ledger_entries?select=id&limit=1" \
+            --request POST \
+            "${SUPABASE_URL}/rest/v1/rpc/touch_app_keepalive" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            -H "Accept: application/json"
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            --data '{}'

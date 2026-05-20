@@ -113,3 +113,32 @@ create trigger ledger_entries_balance_guard
   before insert or delete on public.ledger_entries
   for each row
   execute function public.prevent_negative_tracker_balance();
+
+create table if not exists public.app_keepalive (
+  id boolean primary key default true check (id),
+  touched_at timestamptz not null default timezone('utc'::text, now())
+);
+
+alter table public.app_keepalive enable row level security;
+
+create or replace function public.touch_app_keepalive()
+returns timestamptz
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  touched timestamptz;
+begin
+  insert into public.app_keepalive (id, touched_at)
+  values (true, timezone('utc'::text, now()))
+  on conflict (id) do update
+    set touched_at = excluded.touched_at
+  returning touched_at into touched;
+
+  return touched;
+end;
+$$;
+
+revoke all on function public.touch_app_keepalive() from public;
+grant execute on function public.touch_app_keepalive() to anon, authenticated;
